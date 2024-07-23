@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OX 퀴즈</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            background-image: url('https://cdn.pixabay.com/photo/2021/09/13/06/04/frame-6620372_1280.png'); /* 배경 이미지 설정 */
+            background-size: cover; /* 배경 이미지 크기 조정 */
+            background-position: center; /* 배경 이미지 위치 조정 */
+            color: black;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        .title-input {
+            margin: 20px auto;
+            width: 30%;
+            padding: 10px;
+            font-size: 24px;
+            border: 2px solid #000;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            color: black;
+        }
+        .question {
+            margin: 20px auto;
+            font-size: 24px;
+            width: 50%;
+            padding: 20px;
+            border: 5px solid #FE9A2E;
+            border-radius: 10px;
+            background-color: rgba(249, 249, 249, 0.8); /* 배경을 반투명으로 설정 */
+        }
+        .timer {
+            font-size: 48px; /* 타이머 글자 크기 증가 */
+            margin: 10px 0;
+            color: red;
+        }
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        .button-row {
+            display: flex;
+            justify-content: center;
+            margin: 10px 0;
+        }
+        button {
+            padding: 20px 40px; /* 버튼 크기 증가 */
+            margin: 5px;
+            cursor: pointer;
+            font-size: 24px; /* 버튼 글자 크기 증가 */
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .btn-o {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-x {
+            background-color: #F44336;
+            color: white;
+        }
+        .btn-start {
+            background-color: #2196F3;
+            color: white;
+        }
+        .btn-reset {
+            background-color: #FF9800;
+            color: white;
+        }
+        .btn-add {
+            background-color: #9C27B0;
+            color: white;
+        }
+        #result {
+            margin-top: 20px;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        #totalTime {
+            margin-top: 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <h1>기억하지? OX 퀴즈</h1>
+    <input type="text" class="title-input" placeholder="퀴즈 제목을 입력하세요" />
+    <div class="question" id="question"></div>
+    <div class="timer" id="timer">6 초</div>
+    <div class="menu">
+        <div class="button-row">
+            <button class="btn-o" onclick="checkAnswer(true)">O</button>
+            <button class="btn-x" onclick="checkAnswer(false)">X</button>
+        </div>
+        <div class="button-row">
+            <button class="btn-start" onclick="startGame()">게임 시작</button>
+            <button class="btn-reset" onclick="resetGame()">문제 초기화</button>
+            <button class="btn-add" onclick="addQuestion()">문제 추가</button>
+        </div>
+        <div id="result"></div>
+        <div id="totalTime"></div>
+    </div>
+    <audio id="backgroundMusic" src="https://pixabay.com/ko/music/royalty-free-splint-hard-808-rap-beat-quotflutequot-223009/" loop></audio> <!-- 배경 음악 추가 -->
+
+    <script>
+        let questions = []; // 문제를 저장할 배열
+        let currentQuestion = 0;
+        let timer; 
+        const timeLimit = 6; 
+        let totalTime = 0; 
+        let stopwatch; // 스탑워치 변수
+
+        function startGame() {
+            currentQuestion = 0;
+            totalTime = 0; 
+            loadQuestion();
+            document.getElementById("backgroundMusic").play(); // 퀴즈 시작 시 음악 재생
+            startStopwatch(); // 스탑워치 시작
+        }
+
+        function startStopwatch() {
+            let startTime = Date.now();
+            stopwatch = setInterval(() => {
+                totalTime = Math.floor((Date.now() - startTime) / 1000); // 경과 시간 계산
+                document.getElementById("totalTime").innerText = `걸린 시간: ${totalTime} 초`; 
+            }, 1000);
+        }
+
+        function loadQuestion() {
+            clearInterval(timer); 
+            document.getElementById("result").innerText = ""; 
+            document.getElementById("timer").innerText = timeLimit + " 초"; 
+            if (currentQuestion < questions.length) {
+                document.getElementById("question").innerText = questions[currentQuestion].question;
+                startTimer(timeLimit); 
+            } else {
+                clearInterval(stopwatch); // 스탑워치 멈춤
+                document.getElementById("question").innerText = "퀴즈가 끝났습니다!";
+                document.getElementById("backgroundMusic").pause(); // 퀴즈 끝나면 음악 정지
+            }
+        }
+
+        function startTimer(seconds) {
+            let timeLeft = seconds;
+            document.getElementById("timer").innerText = timeLeft + " 초"; 
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").innerText = timeLeft + " 초"; 
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById("result").innerText = "시간 초과! 문제를 처음부터 다시 풀어주세요.";
+                    totalTime += seconds; 
+                    currentQuestion = 0; 
+                    setTimeout(loadQuestion, 2000); 
+                }
+            }, 1000); 
+        }
+
+        function checkAnswer(userAnswer) {
+            const correctAnswer = questions[currentQuestion].answer;
+            clearInterval(timer); // 문제를 맞추면 타이머 멈춤
+            if (userAnswer === correctAnswer) {
+                document.getElementById("result").innerText = "정답입니다!";
+            } else {
+                document.getElementById("result").innerText = "틀렸습니다. 문제를 처음부터 다시 풀어주세요.";
+                totalTime += timeLimit; 
+                currentQuestion = 0; 
+            }
+            currentQuestion++; 
+            setTimeout(loadQuestion, 2000); 
+        }
+
+        function resetGame() {
+            clearInterval(timer); 
+            clearInterval(stopwatch); // 스탑워치 멈춤
+            questions = []; 
+            currentQuestion = 0; 
+            document.getElementById("question").innerText = "문제가 초기화되었습니다.";
+            document.getElementById("result").innerText = "";
+            document.getElementById("timer").innerText = ""; 
+            document.getElementById("totalTime").innerText = ""; 
+            document.getElementById("backgroundMusic").pause(); // 음악 정지
+        }
+
+        function addQuestion() {
+            const newQuestion = prompt("질문을 입력하세요:");
+            const answer = confirm("정답이 O입니까? (확인: O, 취소: X)");
+            if (newQuestion) {
+                questions.push({ question: newQuestion, answer: answer });
+                alert("문제가 추가되었습니다!");
+            }
+        }
+    </script>
+</body>
+</html>
